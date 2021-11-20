@@ -80,7 +80,6 @@ fifo_dual u_fifo_2
     .rdreq    (!fifo_2_empty)
 );
 
-wire         hash_gen_ack;
 hash_gen u_hash_gen
 (
     .clk      (clk),
