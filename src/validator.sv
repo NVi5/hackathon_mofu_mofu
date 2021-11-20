@@ -16,6 +16,10 @@ wire         difficulty_filter_valid;
 
 wire [127:0] trans_validator_o;
 wire         trans_validator_valid;
+wire         trans_validator_ack;
+
+wire [127:0] fifo_o;
+wire         fifo_empty;
 
 
 difficulty_level_filter #(.difficulty(8'b0)) u_difficulty_level_filter
@@ -29,15 +33,27 @@ difficulty_level_filter #(.difficulty(8'b0)) u_difficulty_level_filter
     .valid_o  (difficulty_filter_valid)
 );
 
+fifo u_fifo
+(
+    .clock    (clk),
+
+    .data     (difficulty_filter_o),
+    .rdreq    (trans_validator_ack),
+    .wrreq    (difficulty_filter_valid),
+    .empty    (fifo_empty),
+    .q        (fifo_o)
+);
+
 trans_validator u_trans_validator
 (
     .clk(clk),
 
-    .data_i   (difficulty_filter_o),
-    .valid_i  (difficulty_filter_valid),
+    .data_i   (fifo_o),
+    .valid_i  (!fifo_empty),
 
     .data_o   (trans_validator_o),
-    .valid_o  (trans_validator_valid)
+    .valid_o  (trans_validator_valid),
+    .ack_o    (trans_validator_ack)
 );
 
 hash_gen u_hash_gen

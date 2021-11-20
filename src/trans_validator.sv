@@ -7,7 +7,8 @@ module trans_validator(
   input  wire         valid_i,
 
   output reg  [127:0] data_o,
-  output reg          valid_o
+  output reg          valid_o,
+  output reg          ack_o
 );
 
 localparam WAIT_FOR_TRANSACTION = 0, READ = 1, READ_D = 2, VALIDATE_DATA = 3,
@@ -60,6 +61,7 @@ assign mem_rd_addr = mem_iter;
 always_ff @(posedge clk) begin
   valid_o <= 0;
   mem_wr_en <= 0;
+  ack_o <= 0;
 
   case (state)
     WAIT_FOR_TRANSACTION: begin
@@ -71,6 +73,7 @@ always_ff @(posedge clk) begin
       receiver_pointer <= UNDEFINED_POINTER;
       mem_iter <= 0;
       data_o <= data_i;
+      ack_o <= 1;
     end
 
     READ: begin
@@ -121,7 +124,7 @@ always_ff @(posedge clk) begin
     end
 
     VALIDATE_TRANSACTION: begin
-      if (sender_cash >= amount) begin  // git
+      if (sender_cash >= amount) begin
         receiver_cash <= receiver_cash + amount;
         sender_cash <= sender_cash - amount;
         valid_o <= 1;
