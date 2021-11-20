@@ -51,7 +51,7 @@ reg [$clog2(MEM_DEPTH)-1:0] receiver_pointer;
 reg [$clog2(MEM_DEPTH)-1:0] counter;
 reg [$clog2(MEM_DEPTH)-1:0] mem_iter;
 
-reg [31:0] state;
+reg [31:0] state = WAIT_FOR_TRANSACTION;
 
 assign amount = data_o[31:10];
 
