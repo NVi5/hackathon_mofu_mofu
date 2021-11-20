@@ -12,7 +12,7 @@ module trans_validator(
 );
 
 localparam WAIT_FOR_TRANSACTION = 0, READ = 1, READ_D = 2, VALIDATE_DATA = 3,
-           VALIDATE_TRANSACTION = 4, WRITE_SENDER = 5, WRITE_RECEIVER = 6;
+           VALIDATE_TRANSACTION = 4, WRITE_SENDER = 5, WRITE_RECEIVER = 6, XD_STATE = 7;
 
 localparam MEM_WIDTH = 72;      // Width id(48bit) + amount(24bit)
 localparam MEM_DEPTH = 16384;   // Depth more than 10k
@@ -20,8 +20,6 @@ localparam MEM_DEPTH = 16384;   // Depth more than 10k
 localparam UNDEFINED_POINTER =  {$clog2(MEM_DEPTH){1'b1}};
 
 localparam BIT_BLOCK_START = 9;
-
-reg err_flag;
 
 reg                          mem_wr_en;
 reg  [$clog2(MEM_DEPTH)-1:0] mem_wr_addr;
@@ -64,7 +62,6 @@ always_ff @(posedge clk) begin
   valid_o <= 0;
   mem_wr_en <= 0;
   ack_o <= 0;
-  err_flag <= 0;
 
   case (state)
     WAIT_FOR_TRANSACTION: begin
@@ -134,9 +131,12 @@ always_ff @(posedge clk) begin
         state <= WRITE_SENDER;
       end
       else begin
-        err_flag <= 1;
-        state <= WAIT_FOR_TRANSACTION;
+        state <= XD_STATE;
       end
+    end
+
+    XD_STATE: begin
+      state <= WAIT_FOR_TRANSACTION;
     end
 
     WRITE_SENDER: begin
