@@ -77,7 +77,7 @@ fifo_dual u_fifo_2
     .q        (fifo_2_o),
     .rdempty  (fifo_2_empty),
 
-    .rdreq    (hash_gen_ack)
+    .rdreq    (!fifo_2_empty)
 );
 
 wire         hash_gen_ack;
@@ -90,7 +90,6 @@ hash_gen u_hash_gen
 
     .data_o   (o_hash),
     .valid_o  (o_valid),
-    .ack_o    (hash_gen_ack)
 );
 
 endmodule
