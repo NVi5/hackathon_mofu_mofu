@@ -78,4 +78,7 @@ set_global_assignment -name SYSTEMVERILOG_FILE ../src/difficulty_level_filter.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../src/hash_gen.sv
 set_global_assignment -name QIP_FILE ../src/hackathon_base.qip
 set_global_assignment -name QIP_FILE fifo.qip
+set_global_assignment -name QIP_FILE pll.qip
+set_global_assignment -name SIP_FILE pll.sip
+set_global_assignment -name QIP_FILE fifo_dual.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

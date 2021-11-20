@@ -8,7 +8,8 @@ module hash_gen(
   input  wire         valid_i,
 
   output wire [127:0] data_o,
-  output wire         valid_o
+  output wire         valid_o,
+  output reg          ack_o
 );
 
 localparam BIT_BLOCK_START = 9;
@@ -22,7 +23,9 @@ assign hash_lsl = {hash[126:0],hash[127]};
 
 always_ff@(posedge clk) begin
   hash_valid <= '0;
+  ack_o <= 0;
   if(valid_i) begin
+    ack_o <= 1;
     if(data_i[BIT_BLOCK_END])
       hash_valid <= '1;
     if(data_i[BIT_BLOCK_START])

@@ -13,18 +13,9 @@ module validator(
 
 wire [127:0] difficulty_filter_o;
 wire         difficulty_filter_valid;
-
-wire [127:0] trans_validator_o;
-wire         trans_validator_valid;
-wire         trans_validator_ack;
-
-wire [127:0] fifo_o;
-wire         fifo_empty;
-
-
 difficulty_level_filter #(.difficulty(8'b0)) u_difficulty_level_filter
 (
-    .clk(clk),
+    .clk      (clk),
 
     .data_i   (i_transcation),
     .valid_i  (i_valid),
@@ -33,20 +24,36 @@ difficulty_level_filter #(.difficulty(8'b0)) u_difficulty_level_filter
     .valid_o  (difficulty_filter_valid)
 );
 
-fifo u_fifo
+wire clk_2;
+pll u_pll
 (
-    .clock    (clk),
-
-    .data     (difficulty_filter_o),
-    .rdreq    (trans_validator_ack),
-    .wrreq    (difficulty_filter_valid),
-    .empty    (fifo_empty),
-    .q        (fifo_o)
+    .refclk   (clk),
+    .rst      (rst),
+    .outclk_0 (clk_2)
 );
 
+wire [127:0] fifo_o;
+wire         fifo_empty;
+fifo_dual u_fifo
+(
+    .wrclk    (clk),
+    .rdclk    (clk_2),
+
+    .data     (difficulty_filter_o),
+    .wrreq    (difficulty_filter_valid),
+
+    .q        (fifo_o),
+    .rdempty  (fifo_empty),
+
+    .rdreq    (trans_validator_ack)
+);
+
+wire [127:0] trans_validator_o;
+wire         trans_validator_valid;
+wire         trans_validator_ack;
 trans_validator u_trans_validator
 (
-    .clk(clk),
+    .clk      (clk_2),
 
     .data_i   (fifo_o),
     .valid_i  (!fifo_empty),
@@ -56,15 +63,34 @@ trans_validator u_trans_validator
     .ack_o    (trans_validator_ack)
 );
 
+
+wire [127:0] fifo_2_o;
+wire         fifo_2_empty;
+fifo_dual u_fifo_2
+(
+    .wrclk    (clk_2),
+    .rdclk    (clk),
+
+    .data     (trans_validator_o),
+    .wrreq    (trans_validator_valid),
+
+    .q        (fifo_2_o),
+    .rdempty  (fifo_2_empty),
+
+    .rdreq    (hash_gen_ack)
+);
+
+wire         hash_gen_ack;
 hash_gen u_hash_gen
 (
-    .clk     (clk),
+    .clk      (clk),
 
-    .data_i  (trans_validator_o),
-    .valid_i (trans_validator_valid),
+    .data_i   (fifo_2_o),
+    .valid_i  (!fifo_2_empty),
 
-    .data_o  (o_hash),
-    .valid_o (o_valid)
+    .data_o   (o_hash),
+    .valid_o  (o_valid),
+    .ack_o    (hash_gen_ack)
 );
 
 endmodule
