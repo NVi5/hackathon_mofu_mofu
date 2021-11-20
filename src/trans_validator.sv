@@ -11,6 +11,27 @@ module trans_validator(
   output reg          valid_o
 );
 
+localparam MEM_WIDTH = 72;      // Width id(48bit) + amount(24bit)
+localparam MEM_DEPTH = 16384;   // Depth more than 10k
+
+reg                          mem_wr_en;
+reg  [$clog2(MEM_DEPTH)-1:0] mem_wr_addr;
+reg          [MEM_WIDTH-1:0] mem_wr_data;
+reg  [$clog2(MEM_DEPTH)-1:0] mem_rd_addr;
+wire         [MEM_WIDTH-1:0] mem_rd_data;
+
+ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl
+(
+    .clk(clk),
+
+    .wr_en(mem_wr_en),
+    .wr_addr(mem_wr_addr),
+    .wr_data(mem_wr_data),
+
+    .rd_addr(mem_rd_addr),
+    .rd_data(mem_rd_data)
+);
+
 always_ff @(posedge clk) begin
   data_o <= data_i;
   valid_o <= valid_i;
@@ -32,7 +53,7 @@ reg it;
 
 always @()
 
-case (state) 
+case (state)
 // kiedy zaczyna sie blok
 counter = 0
 ////
@@ -49,7 +70,7 @@ counter = 0
   READ:
     ram_addr <= it;
     state <= READ_D
-  
+
   READ_D:
     it++;
     if (ram1_data[address] == sender_addr)
