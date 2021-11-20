@@ -21,6 +21,8 @@ localparam UNDEFINED_POINTER =  {$clog2(MEM_DEPTH){1'b1}};
 
 localparam BIT_BLOCK_START = 9;
 
+reg err_flag;
+
 reg                          mem_wr_en;
 reg  [$clog2(MEM_DEPTH)-1:0] mem_wr_addr;
 reg          [MEM_WIDTH-1:0] mem_wr_data;
@@ -62,6 +64,7 @@ always_ff @(posedge clk) begin
   valid_o <= 0;
   mem_wr_en <= 0;
   ack_o <= 0;
+  err_flag <= 0;
 
   case (state)
     WAIT_FOR_TRANSACTION: begin
@@ -131,6 +134,7 @@ always_ff @(posedge clk) begin
         state <= WRITE_SENDER;
       end
       else begin
+        err_flag <= 1;
         state <= WAIT_FOR_TRANSACTION;
       end
     end
