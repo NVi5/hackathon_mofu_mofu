@@ -14,7 +14,6 @@ module top (
 
   output wire UART_TX,
   input  wire UART_RX
-
 );
 
 parameter UART_REF = 50000000;
@@ -76,15 +75,16 @@ mac_wrapper mac_wrapper(
   .tx_data_i  (tx_data_i),
   .tx_valid_i (tx_valid_i)
 );
-  defparam 
-    mac_wrapper.LOC_MAC = {8'hAE, 8'h61, 8'h76, 8'h54, 8'h5A, 8'hD6};
 
-hash_gen hash_gen(
-  .clk     (clk),
-  .data_i  (rx_data_o),
-  .valid_i (rx_valid_o),
-  .data_o  (tx_data_i),
-  .valid_o (tx_valid_i)
+defparam mac_wrapper.LOC_MAC = {8'hAE, 8'h61, 8'h76, 8'h54, 8'h5A, 8'hD6};
+
+validator validator(
+  .clk            (clk),
+  .rst            (reset),
+  .i_valid        (rx_valid_o),
+  .i_transcation  (rx_data_o),
+  .o_valid        (tx_valid_i),
+  .o_hash         (tx_data_i)
 );
 
 endmodule
