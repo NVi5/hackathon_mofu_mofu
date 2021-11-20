@@ -14,7 +14,7 @@ module trans_validator(
 localparam WAIT_FOR_TRANSACTION = 0, READ = 1, READ_D = 2, VALIDATE_DATA = 3,
            VALIDATE_TRANSACTION = 4, WRITE_SENDER = 5, WRITE_RECEIVER = 6;
 
-localparam MEM_WIDTH = 72;      // Width id(48bit) + amount(24bit)
+localparam MEM_WIDTH = 70;      // Width id(48bit) + amount(22bit)
 localparam MEM_DEPTH = 16384;   // Depth more than 10k
 
 localparam UNDEFINED_POINTER =  {$clog2(MEM_DEPTH){1'b1}};
@@ -52,7 +52,7 @@ reg [$clog2(MEM_DEPTH)-1:0] receiver_pointer;
 reg [$clog2(MEM_DEPTH)-1:0] counter;
 reg [$clog2(MEM_DEPTH)-1:0] mem_iter;
 
-reg [31:0] state = WAIT_FOR_TRANSACTION;
+reg [2:0] state = WAIT_FOR_TRANSACTION;
 
 assign amount = data_o[31:10];
 
@@ -89,14 +89,14 @@ always_ff @(posedge clk) begin
         state <= VALIDATE_DATA;
       end
       else begin
-        if (mem_rd_data[71:24] == sender_id) begin
+        if (mem_rd_data[69:22] == sender_id) begin
           sender_pointer <= mem_iter - 1;
-          sender_cash <= mem_rd_data[23:0];
+          sender_cash <= mem_rd_data[21:0];
         end
 
-        if (mem_rd_data[71:24] == receiver_id) begin
+        if (mem_rd_data[69:22] == receiver_id) begin
           receiver_pointer <= mem_iter - 1;
-          receiver_cash <= mem_rd_data[23:0];
+          receiver_cash <= mem_rd_data[21:0];
         end
 
         state <= READ_D;
