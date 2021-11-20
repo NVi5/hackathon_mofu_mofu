@@ -75,19 +75,19 @@ always_ff @(posedge clk) begin
 
     READ: begin
       state <= READ_D;
-      mem_iter++;
+      mem_iter <= mem_iter + 1;
     end
 
     READ_D: begin
       mem_iter++;
       if (mem_rd_data[71:24] == sender_id && mem_iter <= counter) begin
-        sender_pointer = mem_iter;
-        sender_cash = mem_rd_data[23:0];
+        sender_pointer <= mem_iter;
+        sender_cash <= mem_rd_data[23:0];
       end
 
       if (mem_rd_data[71:24] == receiver_id && mem_iter <= counter) begin
-        receiver_pointer = mem_iter;
-        receiver_cash = mem_rd_data[23:0];
+        receiver_pointer <= mem_iter;
+        receiver_cash <= mem_rd_data[23:0];
       end
 
       if (mem_iter > counter || (sender_pointer != UNDEFINED_POINTER && receiver_pointer != UNDEFINED_POINTER)) begin
@@ -100,28 +100,30 @@ always_ff @(posedge clk) begin
 
     VALIDATE_DATA: begin
       if (sender_pointer == UNDEFINED_POINTER && receiver_pointer == UNDEFINED_POINTER) begin
-        counter = counter + 2;
-        sender_cash = 100;
-        receiver_cash = 100;
-        sender_pointer = counter;
-        receiver_pointer = counter + 1;
+        counter <= counter + 2;
+        sender_cash <= 100;
+        receiver_cash <= 100;
+        sender_pointer <= counter;
+        receiver_pointer <= counter + 1;
       end
       else if (sender_pointer != UNDEFINED_POINTER && receiver_pointer == UNDEFINED_POINTER) begin
-        counter = counter + 1;
-        receiver_cash = 100;
-        receiver_pointer = counter;
+        counter <= counter + 1;
+        receiver_cash <= 100;
+        receiver_pointer <= counter;
       end
       else if (sender_pointer == UNDEFINED_POINTER && receiver_pointer != UNDEFINED_POINTER) begin
-        counter = counter + 1;
-        sender_cash = 100;
-        sender_pointer = counter;
+        counter <= counter + 1;
+        sender_cash <= 100;
+        sender_pointer <= counter;
       end
+
+      state <= VALIDATE_TRANSACTION;
     end
 
     VALIDATE_TRANSACTION: begin
       if (sender_cash >= amount) begin  // git
-        receiver_cash += amount;
-        sender_cash -= amount;
+        receiver_cash <= receiver_cash + amount;
+        sender_cash <= sender_cash - amount;
         valid_o <= 1;
         state <= WRITE_SENDER;
       end
@@ -131,17 +133,17 @@ always_ff @(posedge clk) begin
     end
 
     WRITE_SENDER: begin
-      state <= WRITE_RECEIVER;
       mem_wr_addr <= sender_pointer;
       mem_wr_data <= {sender_id, sender_cash};
       mem_wr_en <= 1;
+      state <= WRITE_RECEIVER;
     end
 
     WRITE_RECEIVER: begin
-      state <= WAIT_FOR_TRANSACTION;
       mem_wr_addr <= receiver_pointer;
       mem_wr_data <= {receiver_id, receiver_cash};
       mem_wr_en <= 1;
+      state <= WAIT_FOR_TRANSACTION;
     end
 
   endcase
