@@ -9,8 +9,10 @@ module hash_gen(
 
   output wire [127:0] data_o,
   output wire         valid_o
-
 );
+
+localparam BIT_BLOCK_START = 9;
+localparam BIT_BLOCK_END   = 8;
 
 logic [127:0] hash;
 logic [127:0] hash_lsl;
@@ -20,10 +22,10 @@ assign hash_lsl = {hash[126:0],hash[127]};
 
 always_ff@(posedge clk) begin
   hash_valid <= '0;
-  if(valid_i && data_i[7:0]==8'h00) begin
-    if(data_i[8])
+  if(valid_i) begin
+    if(data_i[BIT_BLOCK_END])
       hash_valid <= '1;
-    if(data_i[9])
+    if(data_i[BIT_BLOCK_START])
       hash <= data_i;
     else
       hash <= data_i ^ hash_lsl;

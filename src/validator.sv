@@ -25,6 +25,17 @@ difficulty_level_fitler u_difficulty_level_fitler #(.difficulty(8'b0))
     .data_o_valid(difficulty_filter_valid)
 );
 
+hash_gen u_hash_gen
+(
+    .clk     (clk),
+
+    .data_i  (difficulty_filter_o),
+    .valid_i (difficulty_filter_valid),
+
+    .data_o  (o_hash),
+    .valid_o (o_valid)
+);
+
 endmodule
 
 `default_nettype wire
