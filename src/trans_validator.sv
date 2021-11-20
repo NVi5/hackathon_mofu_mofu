@@ -12,7 +12,7 @@ module trans_validator(
 );
 
 localparam WAIT_FOR_TRANSACTION = 0, READ = 1, READ_D = 2, VALIDATE_DATA = 3,
-           VALIDATE_TRANSACTION = 4, WRITE_SENDER = 5, WRITE_RECEIVER = 6, XD_STATE = 7;
+           VALIDATE_TRANSACTION = 4, WRITE_SENDER = 5, WRITE_RECEIVER = 6;
 
 localparam MEM_WIDTH = 72;      // Width id(48bit) + amount(24bit)
 localparam MEM_DEPTH = 16384;   // Depth more than 10k
@@ -133,12 +133,8 @@ always_ff @(posedge clk) begin
         state <= WRITE_SENDER;
       end
       else begin
-        state <= XD_STATE;
+        state <= WAIT_FOR_TRANSACTION;
       end
-    end
-
-    XD_STATE: begin
-      state <= WAIT_FOR_TRANSACTION;
     end
 
     WRITE_SENDER: begin
