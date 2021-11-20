@@ -71,6 +71,9 @@ set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_RO
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name ENABLE_SIGNALTAP OFF
 set_global_assignment -name USE_SIGNALTAP_FILE stp1.stp
+set_global_assignment -name SYSTEMVERILOG_FILE ../src/validator.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../src/trans_validator.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../src/difficulty_level_filter.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../src/hash_gen.sv
 set_global_assignment -name QIP_FILE ../src/hackathon_base.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
