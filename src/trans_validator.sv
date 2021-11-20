@@ -75,7 +75,7 @@ always_ff @(posedge clk) begin
 
     READ: begin
       state <= READ_D;
-		mem_iter++;
+      mem_iter++;
     end
 
     READ_D: begin
