@@ -32,7 +32,6 @@ difficulty_level_filter #(.difficulty(8'b0)) u_difficulty_level_filter
 trans_validator u_trans_validator
 (
     .clk(clk),
-    .rst(rst),
 
     .data_i   (difficulty_filter_o),
     .valid_i  (difficulty_filter_valid),

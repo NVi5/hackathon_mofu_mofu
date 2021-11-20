@@ -39,7 +39,7 @@ ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl
 );
 
 reg [47:0] sender_id;
-reg [47:0] sereceiver_id;
+reg [47:0] receiver_id;
 
 reg [23:0] sender_cash;
 reg [23:0] receiver_cash;
@@ -51,6 +51,8 @@ reg [$clog2(MEM_DEPTH)-1:0] receiver_pointer;
 reg [$clog2(MEM_DEPTH)-1:0] counter;
 reg [$clog2(MEM_DEPTH)-1:0] mem_iter;
 
+reg [31:0] state;
+
 assign amount = data_i[31:10];
 
 always_ff @(posedge clk) begin
@@ -59,10 +61,10 @@ always_ff @(posedge clk) begin
 
   case (state)
     WAIT_FOR_TRANSACTION: begin
-      if (valid_i) state <= READ
+      if (valid_i) state <= READ;
       if (data_i[BIT_BLOCK_START]) counter <= 0;
       sender_id <= data_i[127:80];
-      sereceiver_id <= data_i[79:32];
+      receiver_id <= data_i[79:32];
       sender_pointer <= UNDEFINED_POINTER;
       receiver_pointer <= UNDEFINED_POINTER;
       mem_iter <= 0;
@@ -71,23 +73,23 @@ always_ff @(posedge clk) begin
 
     READ: begin
       mem_rd_addr <= mem_iter;
-      state <= READ_D
+      state <= READ_D;
     end
 
     READ_D: begin
       mem_iter++;
       if (mem_rd_data[71:24] == sender_id) begin
-        sender_pointer = mem_iter
+        sender_pointer = mem_iter;
         sender_cash = mem_rd_data[23:0];
       end
 
-      if (mmem_rd_data[71:24] == sereceiver_id) begin
-        receiver_pointer = mem_iter
+      if (mem_rd_data[71:24] == receiver_id) begin
+        receiver_pointer = mem_iter;
         receiver_cash = mem_rd_data[23:0];
       end
 
       if (mem_iter > counter || (sender_pointer != UNDEFINED_POINTER && receiver_pointer != UNDEFINED_POINTER)) begin
-        state <= VALIDATE_DATA
+        state <= VALIDATE_DATA;
       end
       else begin
         state <= READ;
@@ -129,14 +131,14 @@ always_ff @(posedge clk) begin
     WRITE_SENDER: begin
       state <= WRITE_RECEIVER;
       mem_wr_addr <= sender_pointer;
-      mem_wr_data <= {sender_id, sender_hajs};
+      mem_wr_data <= {sender_id, sender_cash};
       mem_wr_en <= 1;
     end
 
     WRITE_RECEIVER: begin
       state <= WAIT_FOR_TRANSACTION;
       mem_wr_addr <= receiver_pointer;
-      mem_wr_data <= {sereceiver_id, receiver_hajs};
+      mem_wr_data <= {receiver_id, receiver_cash};
       mem_wr_en <= 1;
     end
 
