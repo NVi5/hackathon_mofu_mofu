@@ -35,10 +35,10 @@ trans_validator u_trans_validator
     .rst(rst),
 
     .data_i(difficulty_filter_o),
-    .data_i_valid(difficulty_filter_valid),
+    .valid_i(difficulty_filter_valid),
 
     .data_o(trans_validator_o),
-    .data_o_valid(trans_validator_valid)
+    .valid_o(trans_validator_valid)
 );
 
 hash_gen u_hash_gen
