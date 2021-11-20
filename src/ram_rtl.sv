@@ -10,7 +10,10 @@ module ram_rtl # (
     input  wire [        width-1:0] wr_data,
 
     input  wire [$clog2(depth)-1:0] rd_addr,
-    output reg  [        width-1:0] rd_data
+    output reg  [        width-1:0] rd_data,
+
+    input  wire [$clog2(depth)-1:0] rd_addr2,
+    output reg  [        width-1:0] rd_data2
 );
 
 reg [width-1:0] mem [depth-1:0];
@@ -18,6 +21,7 @@ reg [width-1:0] mem [depth-1:0];
 always @(posedge clk) begin
     if (wr_en) mem[wr_addr] <= wr_data;
     rd_data <= mem[rd_addr];
+    rd_data2 <= mem[rd_addr2];
 end
 
 endmodule

@@ -26,6 +26,8 @@ reg  [$clog2(MEM_DEPTH)-1:0] mem_wr_addr;
 reg          [MEM_WIDTH-1:0] mem_wr_data;
 wire [$clog2(MEM_DEPTH)-1:0] mem_rd_addr;
 wire         [MEM_WIDTH-1:0] mem_rd_data;
+wire [$clog2(MEM_DEPTH)-1:0] mem_rd_addr2;
+wire         [MEM_WIDTH-1:0] mem_rd_data2;
 
 ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl
 (
@@ -36,7 +38,10 @@ ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl
     .wr_data(mem_wr_data),
 
     .rd_addr(mem_rd_addr),
-    .rd_data(mem_rd_data)
+    .rd_data(mem_rd_data),
+
+    .rd_addr2(mem_rd_addr2),
+    .rd_data2(mem_rd_data2)
 );
 
 reg [47:0] sender_id;
@@ -57,6 +62,7 @@ reg [2:0] state = WAIT_FOR_TRANSACTION;
 assign amount = data_o[31:10];
 
 assign mem_rd_addr = mem_iter;
+assign mem_rd_addr2 = mem_iter + 1;
 
 always_ff @(posedge clk) begin
   valid_o <= 0;
@@ -79,12 +85,12 @@ always_ff @(posedge clk) begin
     end
 
     READ: begin
-      mem_iter <= mem_iter + 1;
+      mem_iter <= mem_iter + 2;
       state <= READ_D;
     end
 
     READ_D: begin
-      mem_iter <= mem_iter + 1;
+      mem_iter <= mem_iter + 2;
       if (mem_iter > counter || (sender_pointer != UNDEFINED_POINTER && receiver_pointer != UNDEFINED_POINTER)) begin
         state <= VALIDATE_DATA;
       end
@@ -97,6 +103,16 @@ always_ff @(posedge clk) begin
         if (mem_rd_data[69:22] == receiver_id) begin
           receiver_pointer <= mem_iter - 1;
           receiver_cash <= mem_rd_data[21:0];
+        end
+
+        if (mem_rd_data2[69:22] == sender_id) begin
+          sender_pointer <= mem_iter;
+          sender_cash <= mem_rd_data2[21:0];
+        end
+
+        if (mem_rd_data2[69:22] == receiver_id) begin
+          receiver_pointer <= mem_iter;
+          receiver_cash <= mem_rd_data2[21:0];
         end
 
         state <= READ_D;
