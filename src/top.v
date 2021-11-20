@@ -76,7 +76,7 @@ mac_wrapper mac_wrapper(
   .tx_valid_i (tx_valid_i)
 );
 
-defparam mac_wrapper.LOC_MAC = {8'hAE, 8'h61, 8'h76, 8'h54, 8'h5A, 8'hD6};
+defparam mac_wrapper.LOC_MAC = {8'h7E, 8'h3C, 8'h32, 8'hE7, 8'h48, 8'h51};
 
 validator validator(
   .clk            (clk),
