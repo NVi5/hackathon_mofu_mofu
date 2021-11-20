@@ -7,8 +7,8 @@ module validator(
   input  wire         i_valid,
   input  wire [127:0] i_transcation,
 
-  output reg          o_valid,
-  output reg  [127:0] o_hash
+  output wire         o_valid,
+  output wire [127:0] o_hash
 );
 
 wire [127:0] difficulty_filter_o;
