@@ -88,12 +88,12 @@ always_ff @(posedge clk) begin
       end
       else begin
         if (mem_rd_data[71:24] == sender_id) begin
-          sender_pointer <= mem_iter;
+          sender_pointer <= mem_iter - 1;
           sender_cash <= mem_rd_data[23:0];
         end
 
         if (mem_rd_data[71:24] == receiver_id) begin
-          receiver_pointer <= mem_iter;
+          receiver_pointer <= mem_iter - 1;
           receiver_cash <= mem_rd_data[23:0];
         end
 
