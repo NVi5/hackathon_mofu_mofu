@@ -85,7 +85,7 @@ always_ff @(posedge clk) begin
 
     READ_D: begin
       mem_iter <= mem_iter + 1;
-      if (mem_iter > 3000 || mem_iter > counter || (sender_pointer != UNDEFINED_POINTER && receiver_pointer != UNDEFINED_POINTER)) begin
+      if (mem_iter > 15000 || mem_iter > counter || (sender_pointer != UNDEFINED_POINTER && receiver_pointer != UNDEFINED_POINTER)) begin
         state <= VALIDATE_DATA;
       end
       else begin
