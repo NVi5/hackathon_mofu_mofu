@@ -7,12 +7,14 @@ module trans_validator(
   input  wire [127:0] data_i,
   input  wire         valid_i,
 
-  output wire [127:0] data_o,
-  output wire         valid_o
+  output reg  [127:0] data_o,
+  output reg          valid_o
 );
 
-assign data_o = data_i;
-assign valid_o = valid_i;
+always_ff @(posedge clk) begin
+  data_o <= data_i;
+  valid_o <= valid_i;
+end
 
 endmodule
 
