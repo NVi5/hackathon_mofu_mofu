@@ -79,7 +79,7 @@ always_ff @(posedge clk) begin
     end
 
     READ_D: begin
-      mem_iter++;
+      mem_iter <= mem_iter + 1;
       if (mem_iter > counter || (sender_pointer != UNDEFINED_POINTER && receiver_pointer != UNDEFINED_POINTER)) begin
         state <= VALIDATE_DATA;
       end
