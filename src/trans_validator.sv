@@ -80,12 +80,12 @@ always_ff @(posedge clk) begin
 
     READ_D: begin
       mem_iter++;
-      if (mem_rd_data[71:24] == sender_id && mem_iter > counter) begin
+      if (mem_rd_data[71:24] == sender_id && mem_iter <= counter) begin
         sender_pointer = mem_iter;
         sender_cash = mem_rd_data[23:0];
       end
 
-      if (mem_rd_data[71:24] == receiver_id && mem_iter > counter) begin
+      if (mem_rd_data[71:24] == receiver_id && mem_iter <= counter) begin
         receiver_pointer = mem_iter;
         receiver_cash = mem_rd_data[23:0];
       end
