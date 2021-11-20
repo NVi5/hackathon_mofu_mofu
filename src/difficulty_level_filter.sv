@@ -13,10 +13,10 @@ module difficulty_level_filter
 );
 
 always_ff @(posedge clk) begin
-  data_o <= data_i;
   valid_o <= 1'b0;
   if (valid_i && data_i[7:0] <= difficulty) begin
     valid_o <= 1'b1;
+	 data_o <= data_i;
   end
 end
 
