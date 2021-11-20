@@ -65,8 +65,11 @@ always_ff @(posedge clk) begin
 
   case (state)
     WAIT_FOR_TRANSACTION: begin
-      if (valid_i) state <= READ;
-      if (data_i[BIT_BLOCK_START] && valid_i) counter <= 0;
+      if (valid_i) begin
+        state <= READ;
+        ack_o <= 1;
+        if (data_i[BIT_BLOCK_START]) counter <= 0;
+      end
       sender_id <= data_i[127:80];
       receiver_id <= data_i[79:32];
       sender_pointer <= UNDEFINED_POINTER;
@@ -77,7 +80,6 @@ always_ff @(posedge clk) begin
 
     READ: begin
       mem_iter <= mem_iter + 1;
-      ack_o <= 1;
       state <= READ_D;
     end
 
