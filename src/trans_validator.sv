@@ -53,7 +53,7 @@ reg [$clog2(MEM_DEPTH)-1:0] mem_iter;
 
 reg [31:0] state;
 
-assign amount = data_i[31:10];
+assign amount = data_o[31:10];
 
 always_ff @(posedge clk) begin
   valid_o <= 0;
