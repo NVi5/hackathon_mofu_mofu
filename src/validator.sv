@@ -25,6 +25,18 @@ difficulty_level_fitler u_difficulty_level_fitler #(.difficulty(8'b0))
     .data_o_valid(difficulty_filter_valid)
 );
 
+trans_validator u_trans_validator
+(
+    .clk(clk),
+    .rst(rst),
+
+    .data_i(i_transcation),
+    .data_i_valid(i_valid),
+
+    .data_o(difficulty_filter_o),
+    .data_o_valid(difficulty_filter_valid)
+);
+
 hash_gen u_hash_gen
 (
     .clk     (clk),
