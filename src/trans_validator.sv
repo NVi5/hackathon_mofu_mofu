@@ -23,7 +23,7 @@ localparam BIT_BLOCK_START = 9;
 reg                          mem_wr_en;
 reg  [$clog2(MEM_DEPTH)-1:0] mem_wr_addr;
 reg          [MEM_WIDTH-1:0] mem_wr_data;
-reg  [$clog2(MEM_DEPTH)-1:0] mem_rd_addr;
+wire [$clog2(MEM_DEPTH)-1:0] mem_rd_addr;
 wire         [MEM_WIDTH-1:0] mem_rd_data;
 
 ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl
@@ -55,6 +55,8 @@ reg [31:0] state;
 
 assign amount = data_i[31:10];
 
+assign mem_rd_addr = mem_iter;
+
 always_ff @(posedge clk) begin
   valid_o <= 0;
   mem_wr_en <= 0;
@@ -72,8 +74,8 @@ always_ff @(posedge clk) begin
     end
 
     READ: begin
-      mem_rd_addr <= mem_iter;
       state <= READ_D;
+		mem_iter++;
     end
 
     READ_D: begin
@@ -92,7 +94,7 @@ always_ff @(posedge clk) begin
         state <= VALIDATE_DATA;
       end
       else begin
-        state <= READ;
+        state <= READ_D;
       end
     end
 
