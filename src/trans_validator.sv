@@ -76,12 +76,12 @@ always_ff @(posedge clk) begin
       receiver_pointer <= UNDEFINED_POINTER;
       mem_iter <= 0;
       data_o <= data_i;
-      ack_o <= 1;
     end
 
     READ: begin
-      state <= READ_D;
       mem_iter <= mem_iter + 1;
+      ack_o <= 1;
+      state <= READ_D;
     end
 
     READ_D: begin
