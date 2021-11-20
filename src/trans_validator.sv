@@ -2,7 +2,6 @@
 
 module trans_validator(
   input  wire         clk,
-  input  wire         rst,
 
   input  wire [127:0] data_i,
   input  wire         valid_i,
@@ -11,8 +10,15 @@ module trans_validator(
   output reg          valid_o
 );
 
+localparam WAIT_FOR_TRANSACTION = 0, READ = 1, READ_D = 2, VALIDATE_DATA = 3,
+           VALIDATE_TRANSACTION = 4, WRITE_SENDER = 5, WRITE_RECEIVER = 6;
+
 localparam MEM_WIDTH = 72;      // Width id(48bit) + amount(24bit)
 localparam MEM_DEPTH = 16384;   // Depth more than 10k
+
+localparam UNDEFINED_POINTER =  {$clog2(MEM_DEPTH){1'b1}};
+
+localparam BIT_BLOCK_START = 9;
 
 reg                          mem_wr_en;
 reg  [$clog2(MEM_DEPTH)-1:0] mem_wr_addr;
@@ -32,109 +38,110 @@ ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl
     .rd_data(mem_rd_data)
 );
 
+reg [47:0] sender_id;
+reg [47:0] sereceiver_id;
+
+reg [23:0] sender_cash;
+reg [23:0] receiver_cash;
+
+wire [21:0] amount;
+
+reg [$clog2(MEM_DEPTH)-1:0] sender_pointer;
+reg [$clog2(MEM_DEPTH)-1:0] receiver_pointer;
+reg [$clog2(MEM_DEPTH)-1:0] counter;
+reg [$clog2(MEM_DEPTH)-1:0] mem_iter;
+
+assign amount = data_i[31:10];
+
 always_ff @(posedge clk) begin
-  data_o <= data_i;
-  valid_o <= valid_i;
+  valid_o <= 0;
+  mem_wr_en <= 0;
+
+  case (state)
+    WAIT_FOR_TRANSACTION: begin
+      if (valid_i) state <= READ
+      if (data_i[BIT_BLOCK_START]) counter <= 0;
+      sender_id <= data_i[127:80];
+      sereceiver_id <= data_i[79:32];
+      sender_pointer <= UNDEFINED_POINTER;
+      receiver_pointer <= UNDEFINED_POINTER;
+      mem_iter <= 0;
+      data_o <= data_i;
+    end
+
+    READ: begin
+      mem_rd_addr <= mem_iter;
+      state <= READ_D
+    end
+
+    READ_D: begin
+      mem_iter++;
+      if (mem_rd_data[71:24] == sender_id) begin
+        sender_pointer = mem_iter
+        sender_cash = mem_rd_data[23:0];
+      end
+
+      if (mmem_rd_data[71:24] == sereceiver_id) begin
+        receiver_pointer = mem_iter
+        receiver_cash = mem_rd_data[23:0];
+      end
+
+      if (mem_iter > counter || (sender_pointer != UNDEFINED_POINTER && receiver_pointer != UNDEFINED_POINTER)) begin
+        state <= VALIDATE_DATA
+      end
+      else begin
+        state <= READ;
+      end
+    end
+
+    VALIDATE_DATA: begin
+      if (sender_pointer == UNDEFINED_POINTER && receiver_pointer == UNDEFINED_POINTER) begin
+        counter = counter + 2;
+        sender_cash = 100;
+        receiver_cash = 100;
+        sender_pointer = counter;
+        receiver_pointer = counter + 1;
+      end
+      else if (sender_pointer != UNDEFINED_POINTER && receiver_pointer == UNDEFINED_POINTER) begin
+        counter = counter + 1;
+        receiver_cash = 100;
+        receiver_pointer = counter;
+      end
+      else if (sender_pointer == UNDEFINED_POINTER && receiver_pointer != UNDEFINED_POINTER) begin
+        counter = counter + 1;
+        sender_cash = 100;
+        sender_pointer = counter;
+      end
+    end
+
+    VALIDATE_TRANSACTION: begin
+      if (sender_cash >= amount) begin  // git
+        receiver_cash += amount;
+        sender_cash -= amount;
+        valid_o <= 1;
+        state <= WRITE_SENDER;
+      end
+      else begin
+        state <= WAIT_FOR_TRANSACTION;
+      end
+    end
+
+    WRITE_SENDER: begin
+      state <= WRITE_RECEIVER;
+      mem_wr_addr <= sender_pointer;
+      mem_wr_data <= {sender_id, sender_hajs};
+      mem_wr_en <= 1;
+    end
+
+    WRITE_RECEIVER: begin
+      state <= WAIT_FOR_TRANSACTION;
+      mem_wr_addr <= receiver_pointer;
+      mem_wr_data <= {sereceiver_id, receiver_hajs};
+      mem_wr_en <= 1;
+    end
+
+  endcase
 end
-
-
-reg sender_addr;
-reg receiver_addr;
-
-reg sender_hajs;
-reg receiver_hajs;
-
-reg sender_pointer;
-reg receiver_pointer;
-
-reg counter;
-reg it;
-
-
-always @()
-
-case (state)
-// kiedy zaczyna sie blok
-counter = 0
-////
-
-  wait_for_transaction: begin
-    if (valid_i) state <= READ
-    sender_addr <= aaaa;
-    receiver_addr <= bbbb;
-    sender_pointer = fffff
-    receiver_pointer = fffff
-    it = 0;
-  end
-
-  READ:
-    ram_addr <= it;
-    state <= READ_D
-
-  READ_D:
-    it++;
-    if (ram1_data[address] == sender_addr)
-      sender_pointer = current_counter_reg
-      sender_hajs = ram1_data[hajs];
-
-    if (ram1_data[address] == receiver_addr)
-      receiver_pointer = current_counter_reg
-      receiver_hajs = ram1_data[hajs];
-
-    if (it > counter || (sender_pointer != fff && receiver_pointer != fff)) begin
-      state <= VALIDATE_data
-    end
-    else state <= READ;
-
-
-  //after 10k cycles
-
-  VALIDATE_data: begin
-    if (sender_pointer == fff && receiver_pointer == ffff) begin
-      counter = counter + 2;
-      sender_hajs = 100;
-      receiver_hajs = 100;
-      sender_pointer = counter;
-      receiver_pointer = counter + 1;
-    end
-    else if (sender_pointer != fff && receiver_pointer == ffff) begin
-      counter = counter + 1;
-      receiver_hajs = 100;
-      receiver_pointer = counter;
-    end
-    else if (sender_pointer == fff && receiver_pointer != ffff) begin
-      counter = counter + 1;
-      sender_hajs = 100;
-      sender_pointer = counter;
-    end
-  end
-
-  VALIDATE_TRANSACTION: begin
-    if (sender_hajs >= amount) begin  // git
-      receiver_hajs += amount;
-      sender_hajs -= amount;
-      valid_transaction <= 1;
-      state <= WRITE_SENDER
-    end
-    else begin
-      state <= wait_for_transaction
-    end
-  end
-
-  WRITE_SENDER:
-    state <= WRITE_RECEIVER
-    ram[sender_pointer] = {sender_addr, sender_hajs};
-    ram_we = 1;
-
-  WRITE_RECEIVER:
-    state <= wait_for_transaction
-    ram[receiver_pointer] = {receiver_addr, receiver_hajs};
-    ram_we = 1;
-
-
-
-
-endcase
 
 endmodule
 
