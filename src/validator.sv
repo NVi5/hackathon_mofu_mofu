@@ -13,7 +13,7 @@ module validator(
 
 wire [127:0] difficulty_filter_o;
 wire         difficulty_filter_valid;
-difficulty_level_filter #(.difficulty(8'b1)) u_difficulty_level_filter
+difficulty_level_filter #(.difficulty(8'd2)) u_difficulty_level_filter
 (
     .clk      (clk),
 

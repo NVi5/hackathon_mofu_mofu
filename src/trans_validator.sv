@@ -84,7 +84,7 @@ wire [21:0] amount;
 
 reg [$clog2(MEM_DEPTH)-1:0] sender_pointer;
 reg [$clog2(MEM_DEPTH)-1:0] receiver_pointer;
-reg [$clog2(MEM_DEPTH)-1:0] id_counter;
+reg [$clog2(MEM_DEPTH)-1:0] id_counter = 0;
 reg [$clog2(MEM_DEPTH)-1:0] mem_iter;
 
 reg [2:0] state = WAIT_FOR_TRANSACTION;
