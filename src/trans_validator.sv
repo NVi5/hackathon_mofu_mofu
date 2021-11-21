@@ -14,7 +14,7 @@ module trans_validator(
 localparam WAIT_FOR_TRANSACTION = 0, READ = 1, READ_D = 2, VALIDATE_DATA = 3,
            VALIDATE_TRANSACTION = 4, WRITE_SENDER = 5, WRITE_RECEIVER = 6;
 
-localparam MEM_WIDTH = 70;      // Width id(48bit) + amount(22bit)
+localparam MEM_WIDTH = 72;      // Width id(48bit) + amount(24bit)
 localparam MEM_DEPTH = 16384;   // Depth more than 10k
 
 localparam UNDEFINED_POINTER =  {$clog2(MEM_DEPTH){1'b1}};
@@ -52,14 +52,14 @@ ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl
 reg [47:0] sender_id;
 reg [47:0] receiver_id;
 
-reg [21:0] sender_cash;
-reg [21:0] receiver_cash;
+reg [23:0] sender_cash;
+reg [23:0] receiver_cash;
 
 wire [21:0] amount;
 
 reg [$clog2(MEM_DEPTH)-1:0] sender_pointer;
 reg [$clog2(MEM_DEPTH)-1:0] receiver_pointer;
-reg [$clog2(MEM_DEPTH)-1:0] counter;
+reg [$clog2(MEM_DEPTH)-1:0] id_counter;
 reg [$clog2(MEM_DEPTH)-1:0] mem_iter;
 
 reg [2:0] state = WAIT_FOR_TRANSACTION;
@@ -79,7 +79,7 @@ always_ff @(posedge clk) begin
       if (valid_i) begin
         state <= READ;
         ack_o <= 1;
-        if (data_i[BIT_BLOCK_START]) counter <= 0;
+        if (data_i[BIT_BLOCK_START]) id_counter <= 0;
       end
       sender_id <= data_i[127:80];
       receiver_id <= data_i[79:32];
@@ -96,28 +96,28 @@ always_ff @(posedge clk) begin
 
     READ_D: begin
       mem_iter <= mem_iter + 2;
-      if ((mem_iter + 1) > counter || (sender_pointer != UNDEFINED_POINTER && receiver_pointer != UNDEFINED_POINTER)) begin
+      if (mem_iter > 9999 || (sender_pointer != UNDEFINED_POINTER && receiver_pointer != UNDEFINED_POINTER)) begin
         state <= VALIDATE_DATA;
       end
       else begin
-        if (mem_rd_data[69:22] == sender_id && mem_iter <= counter) begin
+        if (mem_rd_data[71:24] == sender_id && (mem_iter - 1) <= id_counter) begin
           sender_pointer <= mem_iter - 1;
-          sender_cash <= mem_rd_data[21:0];
+          sender_cash <= mem_rd_data[23:0];
         end
 
-        if (mem_rd_data[69:22] == receiver_id && mem_iter <= counter) begin
+        if (mem_rd_data[71:24] == receiver_id && (mem_iter - 1) <= id_counter) begin
           receiver_pointer <= mem_iter - 1;
-          receiver_cash <= mem_rd_data[21:0];
+          receiver_cash <= mem_rd_data[23:0];
         end
 
-        if (mem_rd_data2[69:22] == sender_id && (mem_iter + 1) <= counter) begin
+        if (mem_rd_data2[71:24] == sender_id && mem_iter <= id_counter) begin
           sender_pointer <= mem_iter;
-          sender_cash <= mem_rd_data2[21:0];
+          sender_cash <= mem_rd_data2[23:0];
         end
 
-        if (mem_rd_data2[69:22] == receiver_id && (mem_iter + 1) <= counter) begin
+        if (mem_rd_data2[71:24] == receiver_id && mem_iter <= id_counter) begin
           receiver_pointer <= mem_iter;
-          receiver_cash <= mem_rd_data2[21:0];
+          receiver_cash <= mem_rd_data2[23:0];
         end
 
         state <= READ_D;
@@ -126,21 +126,21 @@ always_ff @(posedge clk) begin
 
     VALIDATE_DATA: begin
       if (sender_pointer == UNDEFINED_POINTER && receiver_pointer == UNDEFINED_POINTER) begin
-        counter <= counter + 2;
+        id_counter <= id_counter + 2;
         sender_cash <= 100;
         receiver_cash <= 100;
-        sender_pointer <= counter;
-        receiver_pointer <= counter + 1;
+        sender_pointer <= id_counter;
+        receiver_pointer <= id_counter + 1;
       end
       else if (sender_pointer != UNDEFINED_POINTER && receiver_pointer == UNDEFINED_POINTER) begin
-        counter <= counter + 1;
+        id_counter <= id_counter + 1;
         receiver_cash <= 100;
-        receiver_pointer <= counter;
+        receiver_pointer <= id_counter;
       end
       else if (sender_pointer == UNDEFINED_POINTER && receiver_pointer != UNDEFINED_POINTER) begin
-        counter <= counter + 1;
+        id_counter <= id_counter + 1;
         sender_cash <= 100;
-        sender_pointer <= counter;
+        sender_pointer <= id_counter;
       end
 
       state <= VALIDATE_TRANSACTION;
