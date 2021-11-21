@@ -41,7 +41,7 @@ ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl
     .clkB(clk),
 
     .wr_en(mem_wr_en & !mem_wr_addr[$clog2(MEM_DEPTH)-1]),
-    .wr_addr(mem_wr_addr),
+    .wr_addr(mem_wr_addr >> 1),
     .wr_data(mem_wr_data),
 
     .wr_en2(0),
@@ -52,7 +52,7 @@ ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl
     .rd_data(mem_rd_data),
 
     .rd_addr2(mem_rd_addr2 >> 1),
-    .rd_data2(mem_rd_data2)
+    .rd_data2(mem_rd_data3)
 );
 
 ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl_2
@@ -61,7 +61,7 @@ ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl_2
     .clkB(clk),
 
     .wr_en(mem_wr_en & mem_wr_addr[$clog2(MEM_DEPTH)-1]),
-    .wr_addr(mem_wr_addr),
+    .wr_addr(mem_wr_addr >> 1),
     .wr_data(mem_wr_data),
 
     .wr_en2(0),
@@ -69,9 +69,9 @@ ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl_2
     .wr_data2(0),
 
     .rd_addr(mem_rd_addr >> 1),
-    .rd_data(mem_rd_data3),
+    .rd_data(mem_rd_data2),
 
-    .rd_addr2(mem_rd_addr >> 1),
+    .rd_addr2(mem_rd_addr2 >> 1),
     .rd_data2(mem_rd_data4)
 );
 
