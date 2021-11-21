@@ -31,11 +31,16 @@ wire         [MEM_WIDTH-1:0] mem_rd_data2;
 
 ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl
 (
-    .clk(clk),
+    .clkA(clk),
+    .clkB(clk),
 
     .wr_en(mem_wr_en),
     .wr_addr(mem_wr_addr),
     .wr_data(mem_wr_data),
+
+    .wr_en2(0),
+    .wr_addr2(0),
+    .wr_data2(0),
 
     .rd_addr(mem_rd_addr),
     .rd_data(mem_rd_data),
@@ -47,8 +52,8 @@ ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl
 reg [47:0] sender_id;
 reg [47:0] receiver_id;
 
-reg [23:0] sender_cash;
-reg [23:0] receiver_cash;
+reg [21:0] sender_cash;
+reg [21:0] receiver_cash;
 
 wire [21:0] amount;
 
@@ -62,7 +67,7 @@ reg [2:0] state = WAIT_FOR_TRANSACTION;
 assign amount = data_o[31:10];
 
 assign mem_rd_addr = mem_iter;
-assign mem_rd_addr2 = mem_iter + 1;
+assign mem_rd_addr2 = mem_iter + 14'd1;
 
 always_ff @(posedge clk) begin
   valid_o <= 0;
@@ -91,26 +96,26 @@ always_ff @(posedge clk) begin
 
     READ_D: begin
       mem_iter <= mem_iter + 2;
-      if (mem_iter > counter || (sender_pointer != UNDEFINED_POINTER && receiver_pointer != UNDEFINED_POINTER)) begin
+      if ((mem_iter + 1) > counter || (sender_pointer != UNDEFINED_POINTER && receiver_pointer != UNDEFINED_POINTER)) begin
         state <= VALIDATE_DATA;
       end
       else begin
-        if (mem_rd_data[69:22] == sender_id) begin
+        if (mem_rd_data[69:22] == sender_id && mem_iter <= counter) begin
           sender_pointer <= mem_iter - 1;
           sender_cash <= mem_rd_data[21:0];
         end
 
-        if (mem_rd_data[69:22] == receiver_id) begin
+        if (mem_rd_data[69:22] == receiver_id && mem_iter <= counter) begin
           receiver_pointer <= mem_iter - 1;
           receiver_cash <= mem_rd_data[21:0];
         end
 
-        if (mem_rd_data2[69:22] == sender_id) begin
+        if (mem_rd_data2[69:22] == sender_id && (mem_iter + 1) <= counter) begin
           sender_pointer <= mem_iter;
           sender_cash <= mem_rd_data2[21:0];
         end
 
-        if (mem_rd_data2[69:22] == receiver_id) begin
+        if (mem_rd_data2[69:22] == receiver_id && (mem_iter + 1) <= counter) begin
           receiver_pointer <= mem_iter;
           receiver_cash <= mem_rd_data2[21:0];
         end
