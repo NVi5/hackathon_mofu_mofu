@@ -21,6 +21,8 @@ localparam UNDEFINED_POINTER =  {$clog2(MEM_DEPTH){1'b1}};
 
 localparam BIT_BLOCK_START = 9;
 
+localparam STEP_SIZE = 2;
+
 reg                          mem_wr_en;
 reg  [$clog2(MEM_DEPTH)-1:0] mem_wr_addr;
 reg          [MEM_WIDTH-1:0] mem_wr_data;
@@ -100,23 +102,23 @@ always_ff @(posedge clk) begin
         state <= VALIDATE_DATA;
       end
       else begin
-        if (mem_rd_data[71:24] == sender_id && (mem_iter - 1) <= id_counter) begin
-          sender_pointer <= mem_iter - 1;
+        if (mem_rd_data[71:24] == sender_id && (mem_iter - STEP_SIZE) <= id_counter) begin
+          sender_pointer <= mem_iter - STEP_SIZE;
           sender_cash <= mem_rd_data[23:0];
         end
 
-        if (mem_rd_data[71:24] == receiver_id && (mem_iter - 1) <= id_counter) begin
-          receiver_pointer <= mem_iter - 1;
+        if (mem_rd_data[71:24] == receiver_id && (mem_iter - STEP_SIZE) <= id_counter) begin
+          receiver_pointer <= mem_iter - STEP_SIZE;
           receiver_cash <= mem_rd_data[23:0];
         end
 
-        if (mem_rd_data2[71:24] == sender_id && mem_iter <= id_counter) begin
-          sender_pointer <= mem_iter;
+        if (mem_rd_data2[71:24] == sender_id && (mem_iter - STEP_SIZE + 1) <= id_counter) begin
+          sender_pointer <= mem_iter - STEP_SIZE + 1;
           sender_cash <= mem_rd_data2[23:0];
         end
 
-        if (mem_rd_data2[71:24] == receiver_id && mem_iter <= id_counter) begin
-          receiver_pointer <= mem_iter;
+        if (mem_rd_data2[71:24] == receiver_id && (mem_iter - STEP_SIZE + 1) <= id_counter) begin
+          receiver_pointer <= mem_iter - STEP_SIZE + 1;
           receiver_cash <= mem_rd_data2[23:0];
         end
 
