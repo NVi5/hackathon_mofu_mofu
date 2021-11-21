@@ -210,8 +210,10 @@ always_ff @(posedge clk) begin
 
     VALIDATE_TRANSACTION: begin
       if (sender_cash >= amount) begin
-        receiver_cash <= receiver_cash + amount;
-        sender_cash <= sender_cash - amount;
+        if (sender_pointer != receiver_pointer) begin
+          receiver_cash <= receiver_cash + amount;
+          sender_cash <= sender_cash - amount;
+        end
         valid_o <= 1;
         state <= WRITE_SENDER;
       end
