@@ -94,7 +94,7 @@ reg [2:0] state = WAIT_FOR_TRANSACTION;
 assign amount = data_o[31:10];
 
 assign mem_rd_addr = mem_iter;
-assign mem_rd_addr2 = mem_iter + 14'd1;
+assign mem_rd_addr2 = mem_iter + 14'd2;
 
 always_ff @(posedge clk) begin
   valid_o <= 0;
