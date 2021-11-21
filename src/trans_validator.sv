@@ -28,13 +28,11 @@ reg                          mem_wr_en;
 reg  [$clog2(MEM_DEPTH)-1:0] mem_wr_addr;
 reg          [MEM_WIDTH-1:0] mem_wr_data;
 wire [$clog2(MEM_DEPTH)-1:0] mem_rd_addr;
-wire         [MEM_WIDTH-1:0] mem_rd_data;
 wire [$clog2(MEM_DEPTH)-1:0] mem_rd_addr2;
-wire         [MEM_WIDTH-1:0] mem_rd_data2;
-wire [$clog2(MEM_DEPTH)-1:0] mem_rd_addr3;
-wire         [MEM_WIDTH-1:0] mem_rd_data3;
-wire [$clog2(MEM_DEPTH)-1:0] mem_rd_addr4;
-wire         [MEM_WIDTH-1:0] mem_rd_data4;
+wire         [MEM_WIDTH-1:0] mem_rd_data_0;
+wire         [MEM_WIDTH-1:0] mem_rd_data_1;
+wire         [MEM_WIDTH-1:0] mem_rd_data_2;
+wire         [MEM_WIDTH-1:0] mem_rd_data_3;
 
 ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH / MEM_INSTANCES)) u_ram_rtl
 (
@@ -50,10 +48,10 @@ ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH / MEM_INSTANCES)) u_ram_rtl
     .wr_data2(0),
 
     .rd_addr(mem_rd_addr >> 1),
-    .rd_data(mem_rd_data),
+    .rd_data(mem_rd_data_0),
 
     .rd_addr2(mem_rd_addr2 >> 1),
-    .rd_data2(mem_rd_data3)
+    .rd_data2(mem_rd_data_2)
 );
 
 ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH / MEM_INSTANCES)) u_ram_rtl_2
@@ -70,10 +68,10 @@ ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH / MEM_INSTANCES)) u_ram_rtl_2
     .wr_data2(0),
 
     .rd_addr(mem_rd_addr >> 1),
-    .rd_data(mem_rd_data2),
+    .rd_data(mem_rd_data_1),
 
     .rd_addr2(mem_rd_addr2 >> 1),
-    .rd_data2(mem_rd_data4)
+    .rd_data2(mem_rd_data_3)
 );
 
 reg [47:0] sender_id;
@@ -127,44 +125,44 @@ always_ff @(posedge clk) begin
         state <= VALIDATE_DATA;
       end
       else begin
-        if (mem_rd_data[71:24] == sender_id && (mem_iter - STEP_SIZE) <= id_counter) begin
-          sender_pointer <= mem_iter - STEP_SIZE;
-          sender_cash <= mem_rd_data[23:0];
+        if (mem_rd_data_0[71:24] == sender_id && (mem_iter - STEP_SIZE + 0) <= id_counter) begin
+          sender_pointer <= mem_iter - STEP_SIZE + 0;
+          sender_cash <= mem_rd_data_0[23:0];
         end
 
-        if (mem_rd_data[71:24] == receiver_id && (mem_iter - STEP_SIZE) <= id_counter) begin
-          receiver_pointer <= mem_iter - STEP_SIZE;
-          receiver_cash <= mem_rd_data[23:0];
+        if (mem_rd_data_0[71:24] == receiver_id && (mem_iter - STEP_SIZE + 0) <= id_counter) begin
+          receiver_pointer <= mem_iter - STEP_SIZE + 0;
+          receiver_cash <= mem_rd_data_0[23:0];
         end
 
-        if (mem_rd_data2[71:24] == sender_id && (mem_iter - STEP_SIZE + 1) <= id_counter) begin
+        if (mem_rd_data_1[71:24] == sender_id && (mem_iter - STEP_SIZE + 1) <= id_counter) begin
           sender_pointer <= mem_iter - STEP_SIZE + 1;
-          sender_cash <= mem_rd_data2[23:0];
+          sender_cash <= mem_rd_data_1[23:0];
         end
 
-        if (mem_rd_data2[71:24] == receiver_id && (mem_iter - STEP_SIZE + 1) <= id_counter) begin
+        if (mem_rd_data_1[71:24] == receiver_id && (mem_iter - STEP_SIZE + 1) <= id_counter) begin
           receiver_pointer <= mem_iter - STEP_SIZE + 1;
-          receiver_cash <= mem_rd_data2[23:0];
+          receiver_cash <= mem_rd_data_1[23:0];
         end
 
-        if (mem_rd_data3[71:24] == sender_id && (mem_iter - STEP_SIZE + 2) <= id_counter) begin
+        if (mem_rd_data_2[71:24] == sender_id && (mem_iter - STEP_SIZE + 2) <= id_counter) begin
           sender_pointer <= mem_iter - STEP_SIZE + 2;
-          sender_cash <= mem_rd_data3[23:0];
+          sender_cash <= mem_rd_data_2[23:0];
         end
 
-        if (mem_rd_data3[71:24] == receiver_id && (mem_iter - STEP_SIZE + 2) <= id_counter) begin
+        if (mem_rd_data_2[71:24] == receiver_id && (mem_iter - STEP_SIZE + 2) <= id_counter) begin
           receiver_pointer <= mem_iter - STEP_SIZE + 2;
-          receiver_cash <= mem_rd_data3[23:0];
+          receiver_cash <= mem_rd_data_2[23:0];
         end
 
-        if (mem_rd_data4[71:24] == sender_id && (mem_iter - STEP_SIZE + 3) <= id_counter) begin
+        if (mem_rd_data_3[71:24] == sender_id && (mem_iter - STEP_SIZE + 3) <= id_counter) begin
           sender_pointer <= mem_iter - STEP_SIZE + 3;
-          sender_cash <= mem_rd_data4[23:0];
+          sender_cash <= mem_rd_data_3[23:0];
         end
 
-        if (mem_rd_data4[71:24] == receiver_id && (mem_iter - STEP_SIZE + 3) <= id_counter) begin
+        if (mem_rd_data_3[71:24] == receiver_id && (mem_iter - STEP_SIZE + 3) <= id_counter) begin
           receiver_pointer <= mem_iter - STEP_SIZE + 3;
-          receiver_cash <= mem_rd_data4[23:0];
+          receiver_cash <= mem_rd_data_3[23:0];
         end
 
         state <= READ_D;
