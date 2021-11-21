@@ -15,13 +15,13 @@ localparam WAIT_FOR_TRANSACTION = 0, READ = 1, READ_D = 2, VALIDATE_DATA = 3,
            VALIDATE_TRANSACTION = 4, WRITE_SENDER = 5, WRITE_RECEIVER = 6;
 
 localparam MEM_WIDTH = 72;      // Width id(48bit) + amount(24bit)
-localparam MEM_DEPTH = 16384;   // Depth more than 10k
+localparam MEM_DEPTH = 8192;   // Depth more than 10k
 
 localparam UNDEFINED_POINTER =  {$clog2(MEM_DEPTH){1'b1}};
 
 localparam BIT_BLOCK_START = 9;
 
-localparam STEP_SIZE = 2;
+localparam STEP_SIZE = 4;
 
 reg                          mem_wr_en;
 reg  [$clog2(MEM_DEPTH)-1:0] mem_wr_addr;
@@ -30,13 +30,17 @@ wire [$clog2(MEM_DEPTH)-1:0] mem_rd_addr;
 wire         [MEM_WIDTH-1:0] mem_rd_data;
 wire [$clog2(MEM_DEPTH)-1:0] mem_rd_addr2;
 wire         [MEM_WIDTH-1:0] mem_rd_data2;
+wire [$clog2(MEM_DEPTH)-1:0] mem_rd_addr3;
+wire         [MEM_WIDTH-1:0] mem_rd_data3;
+wire [$clog2(MEM_DEPTH)-1:0] mem_rd_addr4;
+wire         [MEM_WIDTH-1:0] mem_rd_data4;
 
 ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl
 (
     .clkA(clk),
     .clkB(clk),
 
-    .wr_en(mem_wr_en),
+    .wr_en(mem_wr_en & !mem_wr_addr[$clog2(MEM_DEPTH)-1]),
     .wr_addr(mem_wr_addr),
     .wr_data(mem_wr_data),
 
@@ -44,11 +48,31 @@ ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl
     .wr_addr2(0),
     .wr_data2(0),
 
-    .rd_addr(mem_rd_addr),
+    .rd_addr(mem_rd_addr >> 1),
     .rd_data(mem_rd_data),
 
-    .rd_addr2(mem_rd_addr2),
+    .rd_addr2(mem_rd_addr2 >> 1),
     .rd_data2(mem_rd_data2)
+);
+
+ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl_2
+(
+    .clkA(clk),
+    .clkB(clk),
+
+    .wr_en(mem_wr_en & mem_wr_addr[$clog2(MEM_DEPTH)-1]),
+    .wr_addr(mem_wr_addr),
+    .wr_data(mem_wr_data),
+
+    .wr_en2(0),
+    .wr_addr2(0),
+    .wr_data2(0),
+
+    .rd_addr(mem_rd_addr >> 1),
+    .rd_data(mem_rd_data3),
+
+    .rd_addr2(mem_rd_addr >> 1),
+    .rd_data2(mem_rd_data4)
 );
 
 reg [47:0] sender_id;
@@ -92,12 +116,12 @@ always_ff @(posedge clk) begin
     end
 
     READ: begin
-      mem_iter <= mem_iter + 2;
+      mem_iter <= mem_iter + STEP_SIZE;
       state <= READ_D;
     end
 
     READ_D: begin
-      mem_iter <= mem_iter + 2;
+      mem_iter <= mem_iter + STEP_SIZE;
       if (mem_iter > 9999 || (sender_pointer != UNDEFINED_POINTER && receiver_pointer != UNDEFINED_POINTER)) begin
         state <= VALIDATE_DATA;
       end
@@ -120,6 +144,26 @@ always_ff @(posedge clk) begin
         if (mem_rd_data2[71:24] == receiver_id && (mem_iter - STEP_SIZE + 1) <= id_counter) begin
           receiver_pointer <= mem_iter - STEP_SIZE + 1;
           receiver_cash <= mem_rd_data2[23:0];
+        end
+
+        if (mem_rd_data3[71:24] == sender_id && (mem_iter - STEP_SIZE + 2) <= id_counter) begin
+          sender_pointer <= mem_iter - STEP_SIZE + 2;
+          sender_cash <= mem_rd_data3[23:0];
+        end
+
+        if (mem_rd_data3[71:24] == receiver_id && (mem_iter - STEP_SIZE + 2) <= id_counter) begin
+          receiver_pointer <= mem_iter - STEP_SIZE + 2;
+          receiver_cash <= mem_rd_data3[23:0];
+        end
+
+        if (mem_rd_data4[71:24] == sender_id && (mem_iter - STEP_SIZE + 3) <= id_counter) begin
+          sender_pointer <= mem_iter - STEP_SIZE + 3;
+          sender_cash <= mem_rd_data4[23:0];
+        end
+
+        if (mem_rd_data4[71:24] == receiver_id && (mem_iter - STEP_SIZE + 3) <= id_counter) begin
+          receiver_pointer <= mem_iter - STEP_SIZE + 3;
+          receiver_cash <= mem_rd_data4[23:0];
         end
 
         state <= READ_D;
