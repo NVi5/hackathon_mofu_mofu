@@ -41,7 +41,7 @@ ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH / MEM_INSTANCES)) u_ram_rtl
     .clkA(clk),
     .clkB(clk),
 
-    .wr_en(mem_wr_en & !mem_wr_addr[$clog2(MEM_DEPTH)-1]),
+    .wr_en(mem_wr_en & !mem_wr_addr[0]),
     .wr_addr(mem_wr_addr >> 1),
     .wr_data(mem_wr_data),
 
@@ -61,7 +61,7 @@ ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH / MEM_INSTANCES)) u_ram_rtl_2
     .clkA(clk),
     .clkB(clk),
 
-    .wr_en(mem_wr_en & mem_wr_addr[$clog2(MEM_DEPTH)-1]),
+    .wr_en(mem_wr_en & mem_wr_addr[0]),
     .wr_addr(mem_wr_addr >> 1),
     .wr_data(mem_wr_data),
 
