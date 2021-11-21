@@ -1,0 +1,131 @@
+module block #(
+	parameter NUMBER = 0
+)(
+	input wire 			clk,
+	
+	input wire	[47:0]	sender_id_in,
+	input wire	[47:0]	receiver_id_in,
+	input wire	[21:0]	amount_in,
+	
+	input wire			sender_done_in,
+	input wire			receiver_done_in,
+	input wire			valid_in,
+	
+	output reg	[47:0]	sender_id_out,
+	output reg	[47:0]	receiver_id_out,
+	output reg	[21:0]	amount_out,
+	
+	output reg			sender_done_out,
+	output reg			receiver_done_out,
+	output reg			valid_out,
+	
+	input wire			done_back_in,
+	output wire			done_back_out,
+	
+	inout wire			valid_back,
+	inout wire			checked
+);
+
+reg	[47:0]	ID;
+reg	[23:0]	cash;
+reg			waiting;
+
+assign done_back_out = done_back_in & !waiting;
+
+  always @(posedge clk) begin
+	if( done_back_in && !waiting ) begin
+	  amount_out <= amount_in;
+	  sender_id_out <= sender_id_in;
+	  receiver_id_out <= receiver_id_in;
+	end
+  end
+	
+  always @(posedge clk) begin
+    if(valid_in) begin
+	  if( waiting || !done_back_in ) begin
+		valid_out <= '0;
+	    if(checked) begin
+		  waiting <= '0;
+		  if(valid_back) begin
+		    cash <= cash + amount_in;
+		  end else begin
+		  
+	    end
+      end else if( ID == 'x ) begin
+	    if(!sender_done_in) begin
+		  sender_done_out <= '1;
+	      if( amount_in <= 100 ) begin
+		    ID <= sender_id_in;
+		    valid_out <= '1;
+		    if( receiver_id_in == sender_id_in ) begin
+			  cash <= 100;
+			  receiver_done_out <= '1;
+		    end else begin
+		      cash <= 100 - amount_in;
+			  receiver_done_out <= receiver_done_in;
+		    end
+		  end else begin
+		    valid_out <= '0;
+		    receiver_done_out <= '1;
+		  end
+	    end else begin
+	      sender_done_out <= sender_done_in;
+		  valid_out <= valid_in;
+		  if(!receiver_done_in) begin
+		    ID <= receiver_id_in;
+		    cash <= 100 + amount_in;
+		    receiver_done_out <= '1;
+		  end else begin
+		    receiver_done_out <= receiver_done_in;
+		  end
+	    end
+	  end else if(!sender_done_in) begin
+	    if( ID == sender_id_in ) begin
+	      sender_done_out <= '1;
+	      if( cash >= amount_in ) begin
+			valid_out <= '1;
+		    if( receiver_id_in == sender_id_in ) begin
+		      receiver_done_out <= '1;
+		    end else begin
+		      receiver_done_out <= receiver_done_in;
+		  	  cash <= cash - amount;
+		    end
+		  end else begin
+		    receiver_done_out <= receiver_done_in;
+		    valid_out <= '0;
+		  end
+	    end else begin
+		  sender_done_out <= sender_done_in;
+		  valid_out <= valid_in;
+		  if(!receiver_done_in) begin
+		    if( ID == receiver_id_in ) begin
+			  receiver_done_out <= '1;
+			  waiting <= '1;
+			end else begin
+			  receiver_done_out <= receiver_done_in;
+			end
+		  end else begin
+		    receiver_done_out <= receiver_done_in;
+		  end
+	    end
+	  end else begin 
+	    sender_done_out <= sender_done_in;
+		valid_out <= valid_in;
+		if(!receiver_done_in) begin
+	      if( ID == receiver_id_in ) begin
+		    receiver_done_out <= '1;
+		    cash <= cash + amount;
+		  end else begin
+		    receiver_done_out <= receiver_done_in;
+		  end
+	    end else begin
+	      receiver_done_out <= receiver_done_in;
+	  end
+    end else begin
+	  sender_done_out <= '1;
+	  receiver_done_out <= '1;
+	  valid_out <= valid_in;
+	end
+  end
+	
+endmodule
