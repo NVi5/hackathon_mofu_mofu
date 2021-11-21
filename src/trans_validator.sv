@@ -15,7 +15,8 @@ localparam WAIT_FOR_TRANSACTION = 0, READ = 1, READ_D = 2, VALIDATE_DATA = 3,
            VALIDATE_TRANSACTION = 4, WRITE_SENDER = 5, WRITE_RECEIVER = 6;
 
 localparam MEM_WIDTH = 72;      // Width id(48bit) + amount(24bit)
-localparam MEM_DEPTH = 8192;   // Depth more than 10k
+localparam MEM_DEPTH = 16384;   // Depth more than 10k
+localparam MEM_INSTANCES = 2;
 
 localparam UNDEFINED_POINTER =  {$clog2(MEM_DEPTH){1'b1}};
 
@@ -35,7 +36,7 @@ wire         [MEM_WIDTH-1:0] mem_rd_data3;
 wire [$clog2(MEM_DEPTH)-1:0] mem_rd_addr4;
 wire         [MEM_WIDTH-1:0] mem_rd_data4;
 
-ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl
+ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH / MEM_INSTANCES)) u_ram_rtl
 (
     .clkA(clk),
     .clkB(clk),
@@ -55,7 +56,7 @@ ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl
     .rd_data2(mem_rd_data3)
 );
 
-ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH)) u_ram_rtl_2
+ram_rtl #(.width(MEM_WIDTH), .depth(MEM_DEPTH / MEM_INSTANCES)) u_ram_rtl_2
 (
     .clkA(clk),
     .clkB(clk),
