@@ -89,6 +89,15 @@ reg [$clog2(MEM_DEPTH)-1:0] mem_iter;
 
 reg [2:0] state = WAIT_FOR_TRANSACTION;
 
+reg cond_0;
+reg cond_1;
+reg cond_2;
+reg cond_3;
+reg [$clog2(MEM_DEPTH)-1:0] temp_0;
+reg [$clog2(MEM_DEPTH)-1:0] temp_1;
+reg [$clog2(MEM_DEPTH)-1:0] temp_2;
+reg [$clog2(MEM_DEPTH)-1:0] temp_3;
+
 assign amount = data_o[31:10];
 
 assign mem_rd_addr = mem_iter;
@@ -121,47 +130,55 @@ always_ff @(posedge clk) begin
 
     READ_D: begin
       mem_iter <= mem_iter + STEP_SIZE;
+      cond_0 <= (mem_iter + 0) <= id_counter ? 1'b1 : 1'b0;
+      cond_1 <= (mem_iter + 1) <= id_counter ? 1'b1 : 1'b0;
+      cond_2 <= (mem_iter + 2) <= id_counter ? 1'b1 : 1'b0;
+      cond_3 <= (mem_iter + 3) <= id_counter ? 1'b1 : 1'b0;
+      temp_0 <= mem_iter + 0;
+      temp_1 <= mem_iter + 1;
+      temp_2 <= mem_iter + 2;
+      temp_3 <= mem_iter + 3;
       if (mem_iter > 9999 || (sender_pointer != UNDEFINED_POINTER && receiver_pointer != UNDEFINED_POINTER)) begin
         state <= VALIDATE_DATA;
       end
       else begin
-        if (mem_rd_data_0[71:24] == sender_id && (mem_iter - STEP_SIZE + 0) <= id_counter) begin
-          sender_pointer <= mem_iter - STEP_SIZE + 0;
+        if (mem_rd_data_0[71:24] == sender_id && cond_0) begin
+          sender_pointer <= temp_0;
           sender_cash <= mem_rd_data_0[23:0];
         end
 
-        if (mem_rd_data_0[71:24] == receiver_id && (mem_iter - STEP_SIZE + 0) <= id_counter) begin
-          receiver_pointer <= mem_iter - STEP_SIZE + 0;
+        if (mem_rd_data_0[71:24] == receiver_id && cond_0) begin
+          receiver_pointer <= temp_0;
           receiver_cash <= mem_rd_data_0[23:0];
         end
 
-        if (mem_rd_data_1[71:24] == sender_id && (mem_iter - STEP_SIZE + 1) <= id_counter) begin
-          sender_pointer <= mem_iter - STEP_SIZE + 1;
+        if (mem_rd_data_1[71:24] == sender_id && cond_1) begin
+          sender_pointer <= temp_1;
           sender_cash <= mem_rd_data_1[23:0];
         end
 
-        if (mem_rd_data_1[71:24] == receiver_id && (mem_iter - STEP_SIZE + 1) <= id_counter) begin
-          receiver_pointer <= mem_iter - STEP_SIZE + 1;
+        if (mem_rd_data_1[71:24] == receiver_id && cond_1) begin
+          receiver_pointer <= temp_1;
           receiver_cash <= mem_rd_data_1[23:0];
         end
 
-        if (mem_rd_data_2[71:24] == sender_id && (mem_iter - STEP_SIZE + 2) <= id_counter) begin
-          sender_pointer <= mem_iter - STEP_SIZE + 2;
+        if (mem_rd_data_2[71:24] == sender_id && cond_2) begin
+          sender_pointer <= temp_2;
           sender_cash <= mem_rd_data_2[23:0];
         end
 
-        if (mem_rd_data_2[71:24] == receiver_id && (mem_iter - STEP_SIZE + 2) <= id_counter) begin
-          receiver_pointer <= mem_iter - STEP_SIZE + 2;
+        if (mem_rd_data_2[71:24] == receiver_id && cond_2) begin
+          receiver_pointer <= temp_2;
           receiver_cash <= mem_rd_data_2[23:0];
         end
 
-        if (mem_rd_data_3[71:24] == sender_id && (mem_iter - STEP_SIZE + 3) <= id_counter) begin
-          sender_pointer <= mem_iter - STEP_SIZE + 3;
+        if (mem_rd_data_3[71:24] == sender_id && temp_3) begin
+          sender_pointer <= temp_3;
           sender_cash <= mem_rd_data_3[23:0];
         end
 
-        if (mem_rd_data_3[71:24] == receiver_id && (mem_iter - STEP_SIZE + 3) <= id_counter) begin
-          receiver_pointer <= mem_iter - STEP_SIZE + 3;
+        if (mem_rd_data_3[71:24] == receiver_id && temp_3) begin
+          receiver_pointer <= temp_3;
           receiver_cash <= mem_rd_data_3[23:0];
         end
 
